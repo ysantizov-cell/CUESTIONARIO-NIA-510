@@ -1,0 +1,551 @@
+<title>El Primer Encargo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap">
+<style>
+:root{
+  --canvas:#33402e;
+  --canvas-deep:#212b1e;
+  --page:#e9e6d6;
+  --page-line:#c7c2a4;
+  --trail:#8a5a34;
+  --trail-dim:rgba(233,230,214,0.28);
+  --ink:#2b3320;
+  --ink-soft:#5c6650;
+  --brass:#a9915a;
+  --brass-bright:#c7ac72;
+  --flag-ok:#3f6b4a;
+  --flag-ok-bright:#5a9a6b;
+  --flag-no:#a1453a;
+  --flag-no-bright:#c96054;
+  --compass:#c96f2e;
+  --focus:#c7ac72;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  padding:32px 16px 56px;
+  font-family:'Lora', Georgia, serif;
+  color:var(--page);
+  background:
+    radial-gradient(ellipse at 50% -8%, rgba(201,111,46,0.10), transparent 55%),
+    linear-gradient(180deg, var(--canvas), var(--canvas-deep));
+}
+.stage{ width:100%; max-width:660px; display:flex; flex-direction:column; gap:18px; }
+ 
+/* ---------- Header ---------- */
+.masthead{ padding:0 4px; }
+.masthead h1{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  font-size:clamp(1.5rem, 1.1rem + 2vw, 2.1rem);
+  margin:0 0 2px;
+  color:var(--page);
+  transform:rotate(-0.6deg);
+  text-wrap:balance;
+}
+.masthead .subline{
+  font-family:'Space Mono', monospace;
+  font-size:0.72rem;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--brass-bright);
+}
+ 
+/* ---------- Trail map ---------- */
+.trail{
+  display:flex;
+  align-items:center;
+  padding:6px 4px;
+}
+.trail .seg{ flex:1; height:2px; background:var(--trail-dim); position:relative; top:-1px; }
+.trail .seg.passed{ background:var(--brass-bright); }
+.waypoint{
+  flex:none;
+  width:20px; height:20px;
+  border-radius:50%;
+  border:2px solid var(--trail-dim);
+  background:var(--canvas-deep);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Space Mono', monospace;
+  font-size:0.62rem;
+  color:rgba(233,230,214,0.55);
+  flex-shrink:0;
+}
+.waypoint.current{ border-color:var(--compass); color:var(--page); box-shadow:0 0 0 4px rgba(201,111,46,0.22); }
+.waypoint.ok{ border-color:var(--flag-ok-bright); background:var(--flag-ok); color:var(--page); }
+.waypoint.no{ border-color:var(--flag-no-bright); background:var(--flag-no); color:var(--page); }
+ 
+.status-row{
+  display:flex; justify-content:space-between;
+  font-family:'Space Mono', monospace;
+  font-size:0.74rem;
+  color:rgba(233,230,214,0.7);
+  padding:0 4px;
+}
+ 
+/* ---------- Journal page ---------- */
+.journal{
+  position:relative;
+  background:var(--page);
+  color:var(--ink);
+  border-radius:4px;
+  padding:28px clamp(18px,4vw,32px) 26px;
+  box-shadow:0 22px 44px -20px rgba(0,0,0,0.55), 0 1px 0 rgba(0,0,0,0.2);
+  border:1px solid var(--page-line);
+  transform:rotate(-0.25deg);
+}
+.journal::before{
+  content:"";
+  position:absolute; left:26px; top:0; bottom:0;
+  width:1px;
+  background:rgba(161,69,58,0.25);
+}
+.stage-tag{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  font-size:1.15rem;
+  color:var(--compass);
+  margin:0 0 4px 14px;
+  transform:rotate(-0.8deg);
+}
+.stage-ref{
+  font-family:'Space Mono', monospace;
+  font-size:0.68rem;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin:0 0 14px 14px;
+}
+.narrative{
+  font-size:clamp(0.98rem, 0.92rem + 0.25vw, 1.08rem);
+  line-height:1.65;
+  margin:0 0 20px 14px;
+}
+.narrative b{ color:var(--flag-no); }
+ 
+.choices{
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  margin-left:14px;
+}
+.choice{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  text-align:left;
+  width:100%;
+  padding:12px 15px;
+  border:1px solid var(--page-line);
+  background:rgba(255,255,255,0.32);
+  border-radius:3px;
+  font-family:'Lora', serif;
+  font-size:0.96rem;
+  line-height:1.45;
+  color:var(--ink);
+  cursor:pointer;
+  transition:background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.choice:hover:not(:disabled){ background:rgba(255,255,255,0.6); border-color:var(--compass); }
+.choice:focus-visible{ outline:3px solid var(--flag-no); outline-offset:2px; }
+.choice:active:not(:disabled){ transform:scale(0.995); }
+.choice .bullet{
+  font-family:'Space Mono', monospace;
+  color:var(--compass);
+  flex:none;
+  font-weight:700;
+}
+.choice:disabled{ cursor:default; }
+.choice.pick-ok{ background:rgba(63,107,74,0.16); border-color:var(--flag-ok); }
+.choice.pick-no{ background:rgba(161,69,58,0.14); border-color:var(--flag-no); }
+.choice.reveal-ok:not(.pick-ok){ border-color:var(--flag-ok); border-style:dashed; }
+ 
+.fieldnote{
+  display:none;
+  margin:18px 0 0 14px;
+  padding:13px 15px;
+  border-radius:3px;
+  border:1px solid;
+  background:rgba(255,255,255,0.4);
+}
+.fieldnote.show{ display:block; }
+.fieldnote.ok{ border-color:var(--flag-ok); }
+.fieldnote.no{ border-color:var(--flag-no); }
+.fieldnote .tag{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  font-size:1rem;
+  display:block;
+  margin-bottom:5px;
+}
+.fieldnote.ok .tag{ color:var(--flag-ok); }
+.fieldnote.no .tag{ color:var(--flag-no); }
+.fieldnote p{ margin:0; font-size:0.92rem; line-height:1.55; }
+ 
+.next-row{ display:flex; justify-content:flex-end; margin:20px 14px 0 0; }
+.btn{
+  font-family:'Space Mono', monospace;
+  font-size:0.78rem;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  background:var(--ink);
+  color:var(--page);
+  border:none;
+  padding:11px 20px;
+  border-radius:3px;
+  cursor:pointer;
+  transition:background .15s ease, transform .1s ease;
+}
+.btn:hover{ background:var(--compass); }
+.btn:active{ transform:scale(0.98); }
+.btn:focus-visible{ outline:3px solid var(--focus); outline-offset:2px; }
+.btn[hidden]{ display:none; }
+ 
+footer.note{
+  text-align:center;
+  font-family:'Space Mono', monospace;
+  font-size:0.66rem;
+  color:rgba(233,230,214,0.45);
+  letter-spacing:0.5px;
+  padding:2px 8px 0;
+}
+ 
+/* ---------- Ending ---------- */
+.ending{ text-align:center; }
+.ending .stamp{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  font-size:clamp(1.35rem,1rem + 1.7vw,1.9rem);
+  color:var(--compass);
+  border:3px solid var(--compass);
+  border-radius:8px;
+  display:inline-block;
+  padding:9px 22px;
+  margin:0 0 18px;
+  transform:rotate(-2deg);
+}
+.ending .rank{
+  font-family:'Space Mono', monospace;
+  font-size:0.7rem;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin-bottom:6px;
+}
+.ending .rank-title{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  font-size:1.5rem;
+  margin:0 0 14px;
+  color:var(--ink);
+}
+.ending .score-big{
+  font-family:'Space Mono', monospace;
+  font-size:2.2rem;
+  font-weight:700;
+  margin:0 0 16px;
+  color:var(--ink);
+}
+.ending p.summary{
+  max-width:52ch;
+  margin:0 auto 22px;
+  line-height:1.6;
+  color:var(--ink);
+  text-align:left;
+}
+.recap{
+  margin-top:20px;
+  border-top:1px dashed var(--page-line);
+  padding-top:14px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  text-align:left;
+}
+.recap-item{ display:flex; gap:9px; font-size:0.82rem; line-height:1.4; }
+.recap-item .mark{ flex:none; width:1.2em; font-family:'Space Mono',monospace; font-weight:700; }
+.recap-item.ok .mark{ color:var(--flag-ok); }
+.recap-item.no .mark{ color:var(--flag-no); }
+</style>
+ 
+<div class="stage">
+  <div class="masthead">
+    <h1>El Primer Encargo</h1>
+    <span class="subline">NIA 510 · Saldos de apertura — Sociedad ABC, encargo inicial</span>
+  </div>
+ 
+  <div class="trail" id="trail"></div>
+  <div class="status-row">
+    <span id="progressLabel">Etapa 1 de 8</span>
+    <span id="scoreLabel">Decisiones acertadas: 0/8</span>
+  </div>
+ 
+  <main id="journal"></main>
+ 
+  <footer class="note">Basado en la NIA 510 — Encargos iniciales de auditoría · Saldos de apertura</footer>
+</div>
+ 
+<script>
+const STAGES = [
+  {
+    title: "Etapa 1 · Antes de empezar",
+    ref: "Apartado 5",
+    text: "Acabas de ser nombrado auditor de <b>Sociedad ABC</b> para el ejercicio 20X1: tu primer encargo con esta entidad. El año anterior fue auditado por otro despacho. Antes de diseñar cualquier procedimiento sustantivo sobre los saldos de apertura, ¿cuál debería ser tu primer paso?",
+    options: [
+      "Leer los estados financieros más recientes y, si lo hay, el informe de auditoría del auditor predecesor, buscando información relevante sobre los saldos de apertura.",
+      "Aceptar los saldos de apertura tal como están: si el año pasado los auditó otra firma, no es tu responsabilidad revisarlos.",
+      "Repetir desde cero todos los procedimientos sustantivos del periodo anterior, ignorando cualquier trabajo previo.",
+      "Esperar a que la dirección te entregue un resumen verbal de los saldos y trabajar solo con eso."
+    ],
+    correct: 0,
+    explain: "El <b>apartado 5</b> de la NIA 510 requiere justamente esto: leer los estados financieros más recientes y el informe del auditor predecesor en busca de información relevante sobre los saldos de apertura, incluida la información revelada."
+  },
+  {
+    title: "Etapa 2 · El despacho predecesor",
+    ref: "Apartado 6(c)(i) · A4–A5",
+    text: "El <b>Despacho Predecesor, S.C.</b> auditó el ejercicio anterior y emitió una opinión no modificada. Para obtener evidencia suficiente y adecuada sobre los saldos de apertura de forma eficiente, ¿qué procedimiento contempla la norma?",
+    options: [
+      "Solicitar y revisar los papeles de trabajo del auditor predecesor, con sujeción a los requerimientos de ética y profesionales aplicables.",
+      "Confiar ciegamente en la opinión del predecesor, sin revisar ningún papel de trabajo ni evidencia adicional.",
+      "Negarte a cualquier contacto con el auditor predecesor, por un supuesto conflicto de intereses entre firmas.",
+      "Pedir directamente al organismo regulador que audite él mismo los saldos de apertura de la entidad."
+    ],
+    correct: 0,
+    explain: "El <b>apartado 6(c)(i)</b> contempla la revisión de los papeles de trabajo del auditor predecesor como una vía para obtener evidencia sobre los saldos de apertura; los <b>apartados A4 y A5</b> aclaran que esto depende de su competencia profesional e independencia, y que las comunicaciones se rigen por los requerimientos de ética aplicables."
+  },
+  {
+    title: "Etapa 3 · Las existencias del inicio",
+    ref: "Apartado 6(c)(iii) · A6",
+    text: "Revisando el expediente, notas que fuiste nombrado auditor el 30 de junio de 20X1 — mucho después del cierre del ejercicio anterior (31 de diciembre de 20X0). Por lo tanto, no pudiste presenciar el recuento físico de existencias al inicio del periodo actual. ¿Qué haces?",
+    options: [
+      "Aplicar procedimientos de auditoría alternativos que puedan proporcionar evidencia sobre la existencia y valoración de las existencias de apertura (por ejemplo, examinar la documentación de compras, ventas posteriores y el corte de operaciones).",
+      "Asumir que las existencias de apertura son correctas, ya que el despacho predecesor las auditó el año pasado.",
+      "Excluir por completo las existencias del alcance de tu auditoría de este año.",
+      "Pedir a la dirección que firme una manifestación escrita sobre el saldo y dar el asunto por resuelto sin más procedimientos."
+    ],
+    correct: 0,
+    explain: "El <b>apartado 6(c)(iii)</b> exige aplicar procedimientos de auditoría específicos cuando la revisión de papeles de trabajo no es suficiente. El <b>apartado A6</b> señala expresamente que, para existencias, puede ser necesario recurrir a procedimientos adicionales como el examen de la documentación de compras, ventas posteriores y el corte de operaciones."
+  },
+  {
+    title: "Etapa 4 · Una cuenta por cobrar sospechosa",
+    ref: "Apartado 7",
+    text: "Mientras revisas los saldos de apertura, encuentras evidencia de que el saldo de apertura de <b>cuentas por cobrar</b> contiene una incorrección que podría afectar de forma material a los estados financieros del periodo actual. ¿Qué debes hacer?",
+    options: [
+      "Aplicar los procedimientos de auditoría adicionales que resulten adecuados en las circunstancias para determinar el efecto sobre el periodo actual y, si concluyes que la incorrección existe, comunicarla al nivel adecuado de la dirección y a los responsables del gobierno de la entidad, de conformidad con la NIA 450.",
+      "Anotar la incorrección en tu archivo personal y decidir tú solo, sin comunicarla a nadie, si merece la pena corregirla.",
+      "Ignorarla: como proviene de un saldo de apertura del periodo anterior, no es responsabilidad tuya en este encargo.",
+      "Corregir tú mismo la cifra directamente en los registros contables de la entidad antes de continuar con la auditoría."
+    ],
+    correct: 0,
+    explain: "El <b>apartado 7</b> requiere aplicar los procedimientos de auditoría adicionales que resulten adecuados para determinar el efecto en el periodo actual y, si se confirma la incorrección, comunicarla al nivel adecuado de la dirección y a los responsables del gobierno de la entidad, de conformidad con la NIA 450. (Investigando más a fondo, resulta ser un desfase menor ya corregido: el expediente de saldos de apertura sigue limpio salvo por el tema de las existencias.)"
+  },
+  {
+    title: "Etapa 5 · Un callejón sin salida",
+    ref: "Apartado 10",
+    text: "Pese a tus mejores esfuerzos, los procedimientos alternativos no bastan: no existe forma de reconstruir con fiabilidad las cantidades de existencias al inicio del periodo. No podrás obtener evidencia de auditoría suficiente y adecuada sobre este saldo de apertura. ¿Qué implica esto para tu informe?",
+    options: [
+      "Ninguna implicación relevante: las existencias de apertura no afectan al informe de auditoría del periodo actual.",
+      "Expresarás una opinión con salvedades o denegarás la opinión, según corresponda, de conformidad con la NIA 705 (Revisada).",
+      "Debes denegar automáticamente la opinión sobre la totalidad de los estados financieros, sin más análisis.",
+      "Puedes omitir sin más la sección de Fundamento de la opinión en tu informe."
+    ],
+    correct: 1,
+    explain: "El <b>apartado 10</b> es directo: si el auditor no puede obtener evidencia de auditoría suficiente y adecuada respecto a los saldos de apertura, expresará una opinión con salvedades o denegará la opinión, según corresponda, de conformidad con la NIA 705."
+  },
+  {
+    title: "Etapa 6 · Delimitando el alcance del daño",
+    ref: "Apartado A8(b) · Anexo, Ejemplo 1",
+    text: "Analizas el efecto real del problema: la falta de evidencia sobre las existencias de apertura afecta la determinación del resultado del ejercicio y de los flujos de efectivo (que dependen de esas existencias iniciales), pero no afecta al estado de situación financiera al cierre del periodo actual, donde el saldo de existencias ya fue verificado por conteo físico. ¿Qué forma de informe refleja mejor esta circunstancia?",
+    options: [
+      "Opinión con salvedades sobre los resultados del ejercicio y los flujos de efectivo, y opinión no modificada (favorable) sobre la situación financiera.",
+      "Denegación total de la opinión sobre el conjunto completo de los estados financieros, sin distinción.",
+      "Opinión no modificada sin ninguna salvedad en ningún estado financiero, ya que las existencias son un tema menor.",
+      "Un simple párrafo de énfasis, sin modificar la opinión en ningún sentido."
+    ],
+    correct: 0,
+    explain: "Esta es exactamente la circunstancia que ilustra el <b>Ejemplo 1 del Anexo</b> de la NIA 510: cuando el efecto se limita a los resultados y los flujos de efectivo sin afectar la situación financiera, procede una opinión con salvedades sobre los primeros y una opinión no modificada sobre la segunda (véase también el <b>apartado A8(b)</b>)."
+  },
+  {
+    title: "Etapa 7 · Un cambio de método",
+    ref: "Apartado 8",
+    text: "Además de las existencias, revisas la congruencia de las políticas contables. Descubres que la entidad cambió su método de valoración de inventarios de PEPS a Promedio Ponderado durante este ejercicio. ¿Qué debes verificar al respecto?",
+    options: [
+      "Que el cambio se haya registrado, presentado y revelado adecuadamente de conformidad con el marco de información financiera aplicable.",
+      "Nada en particular: los cambios de políticas contables no son responsabilidad del auditor, sino exclusivamente de la dirección.",
+      "Que el cambio se haya realizado antes del cierre del periodo anterior; de lo contrario, es automáticamente inválido.",
+      "Únicamente que los responsables del gobierno de la entidad hayan autorizado el cambio, sin analizar su contabilización."
+    ],
+    correct: 0,
+    explain: "El <b>apartado 8</b> requiere obtener evidencia suficiente y adecuada sobre si los cambios en las políticas contables se han registrado, presentado y revelado adecuadamente de conformidad con el marco de información financiera aplicable."
+  },
+  {
+    title: "Etapa 8 · Nota al margen: el caso de un colega",
+    ref: "Apartado 12",
+    text: "Antes de seguir con tu propio informe, recuerdas el caso de un colega en otra firma: en su primer encargo de auditoría, la entidad de su cliente cambió de método de depreciación de activos fijos, pero no registró, presentó ni reveló ese cambio adecuadamente de conformidad con el marco de información financiera aplicable. ¿Qué opinión le correspondería a tu colega en ese caso?",
+    options: [
+      "Opinión con salvedades o una opinión desfavorable, según corresponda, de conformidad con la NIA 705 (Revisada).",
+      "Opinión no modificada (favorable): los cambios de políticas contables nunca afectan la opinión de auditoría.",
+      "Denegación de opinión automática: en estos casos nunca cabe una opinión con salvedades.",
+      "Un simple párrafo de énfasis, ya que se trata solo de una cuestión de presentación y no de fondo."
+    ],
+    correct: 0,
+    explain: "El <b>apartado 12</b> es claro: si un cambio en las políticas contables no se registra, presenta o revela adecuadamente de conformidad con el marco de información financiera aplicable, el auditor expresará una opinión con salvedades o una opinión desfavorable, según corresponda, de conformidad con la NIA 705 (Revisada)."
+  },
+  {
+    title: "Etapa 9 · Un litigio pendiente",
+    ref: "Apartado 9",
+    text: "Al revisar el informe del predecesor, encuentras que el año pasado emitió una opinión con salvedades por una incertidumbre relacionada con una demanda legal contra la entidad, que sigue sin resolverse. ¿Qué debes hacer con esta información?",
+    options: [
+      "Ignorar el informe del predecesor: solo importa el trabajo que tú realices sobre el periodo actual.",
+      "Evaluar el efecto que la cuestión que originó aquella modificación tiene en tu propia valoración de los riesgos de incorrección material en los estados financieros del periodo actual, de conformidad con la NIA 315.",
+      "Repetir automáticamente la misma salvedad en tu informe de este año, sin evaluar si sigue siendo relevante.",
+      "Comunicar el asunto únicamente a la aseguradora de tu firma de auditoría, sin más análisis técnico."
+    ],
+    correct: 1,
+    explain: "El <b>apartado 9</b> requiere evaluar el efecto que la cuestión que originó la opinión modificada del predecesor tiene en la valoración de los riesgos de incorrección material del periodo actual, conforme a la NIA 315 — no copiarla ni ignorarla sin más."
+  },
+  {
+    title: "Etapa 10 · El informe final",
+    ref: "Síntesis · Apartados 8, 10 y A8(b)",
+    text: "Reúnes todo lo aprendido en el expediente: no hay evidencia suficiente sobre las existencias de apertura (afecta resultados y flujos de efectivo, no la situación financiera); el cambio de política contable de inventarios está adecuadamente registrado y revelado; y el litigio del año anterior, evaluado de nuevo, no representa una incertidumbre material nueva. ¿Qué opinión emites sobre los estados financieros de Sociedad ABC?",
+    options: [
+      "Opinión no modificada (favorable) sobre la situación financiera, y opinión con salvedades sobre los resultados del ejercicio y los flujos de efectivo.",
+      "Denegación de opinión sobre el conjunto completo de los estados financieros, incluida la situación financiera.",
+      "Opinión no modificada sobre absolutamente todo, sin mencionar el asunto de las existencias en ningún lugar del informe.",
+      "Opinión desfavorable sobre el conjunto completo de los estados financieros."
+    ],
+    correct: 0,
+    explain: "Esta es la conclusión coherente con todo el expediente reunido, y coincide con el <b>Ejemplo 1 del Anexo</b> de la NIA 510: opinión con salvedades sobre los resultados y los flujos de efectivo (por la falta de evidencia sobre existencias de apertura), y opinión no modificada sobre la situación financiera, que no se ve afectada."
+  }
+];
+ 
+let idx = 0;
+let score = 0;
+let results = new Array(STAGES.length).fill(null);
+let locked = false;
+ 
+const journal = document.getElementById('journal');
+const trailEl = document.getElementById('trail');
+const progressLabel = document.getElementById('progressLabel');
+const scoreLabel = document.getElementById('scoreLabel');
+ 
+function buildTrail(){
+  let html = '';
+  for(let i=0;i<STAGES.length;i++){
+    if(i>0) html += `<div class="seg ${i<=idx ? 'passed' : ''}"></div>`;
+    let cls = 'waypoint';
+    if(i === idx) cls += ' current';
+    if(results[i] === true) cls += ' ok';
+    if(results[i] === false) cls += ' no';
+    html += `<div class="${cls}">${i+1}</div>`;
+  }
+  trailEl.innerHTML = html;
+}
+ 
+function updateStatus(){
+  progressLabel.textContent = `Etapa ${idx+1} de ${STAGES.length}`;
+  scoreLabel.textContent = `Decisiones acertadas: ${score}/${STAGES.length}`;
+}
+ 
+function renderStage(){
+  locked = false;
+  const s = STAGES[idx];
+  journal.innerHTML = `
+    <div class="stage-tag">${s.title}</div>
+    <div class="stage-ref">${s.ref}</div>
+    <p class="narrative">${s.text}</p>
+    <div class="choices" id="choices"></div>
+    <div class="fieldnote" id="fieldnote"></div>
+    <div class="next-row"><button class="btn" id="nextBtn" hidden>${idx === STAGES.length-1 ? 'Cerrar el expediente' : 'Continuar la ruta'}</button></div>
+  `;
+  const letters = ['A','B','C','D'];
+  const choicesEl = document.getElementById('choices');
+  s.options.forEach((text, i) => {
+    const b = document.createElement('button');
+    b.className = 'choice';
+    b.innerHTML = `<span class="bullet">${letters[i]}</span><span>${text}</span>`;
+    b.addEventListener('click', () => choose(i));
+    choicesEl.appendChild(b);
+  });
+  buildTrail();
+  updateStatus();
+}
+ 
+function choose(i){
+  if(locked) return;
+  locked = true;
+  const s = STAGES[idx];
+  const isCorrect = i === s.correct;
+  results[idx] = isCorrect;
+  if(isCorrect) score++;
+ 
+  document.querySelectorAll('#choices .choice').forEach((el, j) => {
+    el.disabled = true;
+    if(j === i && isCorrect) el.classList.add('pick-ok');
+    if(j === i && !isCorrect) el.classList.add('pick-no');
+    if(j === s.correct && j !== i) el.classList.add('reveal-ok');
+  });
+ 
+  const fn = document.getElementById('fieldnote');
+  fn.classList.add('show', isCorrect ? 'ok' : 'no');
+  fn.innerHTML = `<span class="tag">${isCorrect ? 'Decisión acertada' : 'No era la mejor decisión'}</span><p>${s.explain}</p>`;
+ 
+  document.getElementById('nextBtn').hidden = false;
+  document.getElementById('nextBtn').addEventListener('click', goNext, { once:true });
+ 
+  buildTrail();
+  updateStatus();
+}
+ 
+function goNext(){
+  if(idx < STAGES.length - 1){
+    idx++;
+    renderStage();
+  } else {
+    renderEnding();
+  }
+}
+ 
+function rankFor(score){
+  if(score >= 9) return { title:"Socio Fundador de tu propia firma", summary:"Navegaste el encargo inicial con criterio impecable: papeles del predecesor, procedimientos alternativos para existencias, comunicación de incorrecciones, congruencia de políticas contables y la opinión final, todo encajó con la NIA 510." };
+  if(score >= 7) return { title:"Auditor Experimentado", summary:"Manejaste bien la mayoría de las decisiones. Repasa la diferencia entre lo que exige el apartado 6(c), la comunicación de incorrecciones del apartado 7, y las implicaciones de opinión de los apartados 10, 12 y A8(b)." };
+  if(score >= 4) return { title:"Auditor de Campo", summary:"Conoces el terreno general, pero el expediente tiene lagunas. Vuelve a leer los apartados 5 a 12 de la NIA 510, especialmente lo referente a las existencias de apertura y a la congruencia de políticas contables." };
+  return { title:"Auditor en Prácticas", summary:"El primer encargo es siempre el más difícil. Repasa con calma toda la NIA 510 —especialmente el Anexo con sus ejemplos de informes— antes de tu próxima expedición." };
+}
+ 
+function renderEnding(){
+  const rank = rankFor(score);
+  const recapHtml = STAGES.map((s, i) => `
+    <div class="recap-item ${results[i] ? 'ok' : 'no'}">
+      <span class="mark">${results[i] ? '✓' : '✕'}</span>
+      <span>${s.title} (${s.ref})</span>
+    </div>
+  `).join('');
+ 
+  journal.innerHTML = `
+    <div class="ending">
+      <div class="stamp">Fin del Encargo</div>
+      <div class="rank">Evaluación de tu primer año</div>
+      <div class="rank-title">${rank.title}</div>
+      <div class="score-big">${score} / ${STAGES.length}</div>
+      <p class="summary">${rank.summary}</p>
+      <button class="btn" id="restartBtn">Empezar un nuevo encargo</button>
+      <div class="recap">${recapHtml}</div>
+    </div>
+  `;
+  document.getElementById('restartBtn').addEventListener('click', restart);
+}
+ 
+function restart(){
+  idx = 0; score = 0;
+  results = new Array(STAGES.length).fill(null);
+  renderStage();
+}
+ 
+renderStage();
+</script>
+ 
